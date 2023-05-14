@@ -1,4 +1,4 @@
-name: Lint - GeetestPOC
+name: Lint - GeeTestPOC
 
 on: [push]
 
