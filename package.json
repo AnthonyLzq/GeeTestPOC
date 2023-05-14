@@ -1,0 +1,64 @@
+{
+  "name": "geetestpoc",
+  "version": "0.1.0",
+  "main": "src/index.ts",
+  "description": "Bypassing Geetest with Puppeteer",
+  "scripts": {
+    "lint": "eslint src/* --ext .ts",
+    "service": "nodemon",
+    "start": "NODE_ENV=local ts-node src/index.ts",
+    "release": "standard-version",
+    "test:local": "NODE_ENV=test jest --ci -i",
+    "test:ci": "NODE_ENV=test jest --ci -i"
+  },
+  "author": "AnthonyLzq <sluzquinosa@uni.pe>",
+  "license": "MIT",
+  "devDependencies": {
+    "@jest/types": "^29.5.0",
+    "@types/jest": "^29.5.1",
+    "@types/node": "^20.1.4",
+    "@types/pixelmatch": "^5.2.4",
+    "@typescript-eslint/eslint-plugin": "^5.59.5",
+    "@typescript-eslint/parser": "^5.59.5",
+    "dotenv": "^16.0.3",
+    "eslint": "^8.40.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-jest": "^27.2.1",
+    "eslint-plugin-n": "^15.7.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "jest": "^29.5.0",
+    "jest-unit": "^0.0.2",
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.8",
+    "ts-jest": "^29.1.0",
+    "ts-loader": "^9.4.2",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "tsconfig-paths-webpack-plugin": "^4.0.1",
+    "typescript": "^5.0.4",
+    "webpack": "^5.82.1",
+    "webpack-cli": "^5.1.1",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "nodemonConfig": {
+    "watch": [
+      ".env",
+      "src"
+    ],
+    "ext": "ts",
+    "ignore": [
+      "src/**/*.test.ts"
+    ],
+    "exec": "NODE_ENV=local ts-node -r dotenv/config ./src/index"
+  },
+  "dependencies": {
+    "jimp": "^0.22.8",
+    "opencv-wasm": "4.3.0-10",
+    "pixelmatch": "^5.3.0",
+    "puppeteer": "^20.2.0"
+  }
+}
