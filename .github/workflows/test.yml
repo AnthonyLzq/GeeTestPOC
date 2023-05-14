@@ -1,10 +1,10 @@
-name: Tests - geetestpoc
+name: Tests - GeetestPOC
 
 on: [push]
 
 jobs:
   test:
-    name: Testing geetestpoc
+    name: Testing GeetestPOC
     runs-on: ubuntu-latest
 
     steps:
