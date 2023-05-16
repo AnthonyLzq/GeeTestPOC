@@ -1,0 +1,11 @@
+{
+  "watch": [
+    ".env",
+    "src"
+  ],
+  "ext": "ts",
+  "ignore": [
+    "src/**/*.test.ts"
+  ],
+  "exec": "NODE_ENV=local ts-node -r dotenv/config ./src/space.ts"
+}

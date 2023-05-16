@@ -1,35 +1,39 @@
-import { join } from 'node:path'
-import { exec } from 'node:child_process'
-import { promisify } from 'node:util'
-import puppeteer, { Page } from 'puppeteer'
+import { Page } from 'puppeteer'
 import Jimp from 'jimp'
 import pixelmatch from 'pixelmatch'
 import { cv } from 'opencv-wasm'
 
-import { sleep } from 'utils'
+import {
+  SLIDE_CAPTCHA_URL,
+  createIncognitoBrowser,
+  navigateTo,
+  sleep
+} from './utils'
 
-const execAsync = promisify(exec)
-
-const SLIDE_CAPTCHA_URL = 'https://www.geetest.com/en/demo'
 const SLIDE_CAPTCHA_SELECTOR = '.tab-item.tab-item-1'
-const GEETEST_SELECTOR = '.geetest_radar_tip'
-const GEETEST_CANVAS = '.geetest_canvas_img canvas'
+const GEE_TEST_SELECTOR = '.geetest_radar_tip'
+const GEE_TEST_CANVAS = '.geetest_canvas_img canvas'
 const SLIDER_SELECTOR = '.geetest_slider_button'
-
-const navigateTo = async (page: Page) => {
-  await page.goto(SLIDE_CAPTCHA_URL, {
-    timeout: 60_000,
-    waitUntil: 'networkidle2'
-  })
-  await page.waitForSelector(SLIDE_CAPTCHA_SELECTOR)
-  await page.click(SLIDE_CAPTCHA_SELECTOR)
-  await sleep(5_000)
-}
+const GEE_TEST_RESULT =
+  '.geetest_success_radar_tip > span.geetest_success_radar_tip_content'
 
 const clickVerifyButton = async (page: Page) => {
-  await page.click(GEETEST_SELECTOR)
-  await page.waitForSelector(GEETEST_CANVAS, { visible: true })
+  await page.click(GEE_TEST_SELECTOR)
+  await page.waitForSelector(GEE_TEST_CANVAS, { visible: true })
   await sleep(1_000)
+}
+
+const verifyCaptchaResolved = async (page: Page) => {
+  try {
+    await page.waitForSelector(GEE_TEST_RESULT, {
+      visible: true,
+      timeout: 10_000
+    })
+
+    return true
+  } catch (error) {
+    return false
+  }
 }
 
 const getCaptchaImages = async (page: Page) => {
@@ -196,25 +200,17 @@ const slidePuzzlePiece = async (page: Page, center: Center) => {
   await page.mouse.up()
 }
 
-const removeImages = async () => {
-  const path = join(__dirname, './images')
-
-  await execAsync(`rm  ${path}/*`)
-}
-
 const solver = async () => {
-  await removeImages().catch(() => {
-    console.log('Nothing to delete')
-  })
-  const browser = await puppeteer.launch({
-    headless: process.env.NODE_ENV !== 'local',
-    args: ['--incognito']
-  })
-  const context = await browser.createIncognitoBrowserContext()
-  const page = await context.newPage()
+  const { browser, page } = await createIncognitoBrowser()
 
-  await navigateTo(page)
+  await navigateTo({
+    page,
+    url: SLIDE_CAPTCHA_URL,
+    selector: SLIDE_CAPTCHA_SELECTOR
+  })
   await clickVerifyButton(page)
+
+  if (await verifyCaptchaResolved(page)) return true
 
   const images = await getCaptchaImages(page)
   const diffImage = await getDiffImage(images)
@@ -222,11 +218,14 @@ const solver = async () => {
 
   await slidePuzzlePiece(page, center)
   await sleep(3_000)
-  await page.screenshot({
-    path: join(__dirname, './images/solved.png'),
-    fullPage: true
-  })
+
+  let result = false
+
+  if (await verifyCaptchaResolved(page)) result = true
+
   await browser.close()
+
+  return result
 }
 
 export { solver }

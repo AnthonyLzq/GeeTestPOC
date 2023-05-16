@@ -1,12 +1,14 @@
 {
-  "name": "geetestpoc",
+  "name": "gee-test-poc",
   "version": "0.1.0",
   "main": "src/index.ts",
   "description": "Bypassing Geetest with Puppeteer",
   "scripts": {
     "lint": "eslint src/* --ext .ts",
-    "service": "nodemon",
-    "start": "NODE_ENV=local ts-node src/index.ts",
+    "solver:slide:dev": "nodemon --config nodemon.slider.json",
+    "solver:slide": "ts-node -r dotenv/config ./src/solver/slider.ts",
+    "solver:space:dev": "nodemon --config nodemon.space.json",
+    "solver:space": "ts-node -r dotenv/config ./src/solver/space.ts",
     "release": "standard-version",
     "test:local": "NODE_ENV=test jest --ci -i",
     "test:ci": "NODE_ENV=test jest --ci -i"
