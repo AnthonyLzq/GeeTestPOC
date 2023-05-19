@@ -5,12 +5,12 @@
   "description": "Bypassing Geetest with Puppeteer",
   "scripts": {
     "lint": "eslint src/* --ext .ts",
-    "solver:slide:dev": "nodemon --config nodemon.slider.json",
-    "solver:slide": "ts-node -r dotenv/config ./src/solver/slider.ts",
-    "solver:space:dev": "nodemon --config nodemon.space.json",
-    "solver:space": "ts-node -r dotenv/config ./src/solver/space.ts",
     "release": "standard-version",
-    "test:local": "NODE_ENV=test jest --ci -i",
+    "test:local": "NODE_ENV=local jest --ci -i",
+    "test:slider": "NODE_ENV=test jest --ci -i --testPathPattern=slider",
+    "test:slider:local": "NODE_ENV=local jest --setupFiles dotenv/config --ci -i --testPathPattern=slider",
+    "test:space": "NODE_ENV=test jest --ci -i --testPathPattern=space",
+    "test:space:local": "NODE_ENV=local jest --setupFiles dotenv/config --ci -i --testPathPattern=space",
     "test:ci": "NODE_ENV=test jest --ci -i"
   },
   "author": "AnthonyLzq <sluzquinosa@uni.pe>",
@@ -54,6 +54,7 @@
     "exec": "NODE_ENV=local ts-node -r dotenv/config ./src/index"
   },
   "dependencies": {
+    "axios": "^1.4.0",
     "jimp": "^0.22.8",
     "opencv-wasm": "4.3.0-10",
     "pixelmatch": "^5.3.0",

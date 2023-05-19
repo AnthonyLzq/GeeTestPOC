@@ -1,6 +1,7 @@
 import puppeteer, { Page } from 'puppeteer'
 
 const SLIDE_CAPTCHA_URL = 'https://www.geetest.com/en/demo'
+const GEE_TEST_SELECTOR = '.geetest_radar_tip'
 
 const sleep = (time: number) =>
   new Promise(resolve => setTimeout(resolve, time))
@@ -29,12 +30,23 @@ const navigateTo = async ({
 const createIncognitoBrowser = async () => {
   const browser = await puppeteer.launch({
     headless: process.env.NODE_ENV !== 'local',
-    args: ['--incognito']
+    args: [
+      '--incognito',
+      '--disable-web-security',
+      '--disable-features=IsolateOrigins,site-per-process'
+    ],
+    devtools: true
   })
   const context = await browser.createIncognitoBrowserContext()
   const page = await context.newPage()
 
-  return { browser, context, page }
+  return { browser, page }
 }
 
-export { SLIDE_CAPTCHA_URL, createIncognitoBrowser, navigateTo, sleep }
+export {
+  SLIDE_CAPTCHA_URL,
+  GEE_TEST_SELECTOR,
+  createIncognitoBrowser,
+  navigateTo,
+  sleep
+}
