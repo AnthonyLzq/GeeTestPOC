@@ -162,8 +162,6 @@ const solver = async () => {
 
       if (!geeTestValues)
         console.log('geeTestValues is undefined, something went wrong')
-
-      throw e
     }
 
   await browser.close()

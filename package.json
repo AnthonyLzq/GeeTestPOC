@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint src/* --ext .ts",
     "release": "standard-version",
-    "test:local": "NODE_ENV=local jest --ci -i",
+    "test:local": "NODE_ENV=local jest --setupFiles dotenv/config --ci -i",
     "test:slider": "NODE_ENV=test jest --ci -i --testPathPattern=slider",
     "test:slider:local": "NODE_ENV=local jest --setupFiles dotenv/config --ci -i --testPathPattern=slider",
     "test:space": "NODE_ENV=test jest --ci -i --testPathPattern=space",
