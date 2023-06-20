@@ -1,4 +1,4 @@
-import { Page } from 'puppeteer'
+import { Browser, Page } from 'puppeteer'
 import axios from 'axios'
 import { createIncognitoBrowser, navigateTo, sleep } from './utils'
 
@@ -109,64 +109,75 @@ const handleGeeTest = async (page: Page, geeTestValues: GeeTestValues) => {
 }
 
 const solver = async () => {
-  const { browser, page } = await createIncognitoBrowser()
-  let firstTryJSBlock = true
-  let firstTry = true
-  let geeTestValues: GeeTestValues | undefined
+  let browser: Browser | undefined
 
-  await page.setRequestInterception(true)
+  try {
+    const incognito = await createIncognitoBrowser()
+    const { page } = incognito
+    browser = incognito.browser
 
-  page.on('request', async request => {
-    if (request.url().includes(LOAD_CAPTCHA_URL_CONTENT) && firstTryJSBlock) {
-      await request.abort()
-      firstTryJSBlock = false
-    } else await request.continue()
-  })
+    let firstTryJSBlock = true
+    let firstTry = true
+    let geeTestValues: GeeTestValues | undefined
 
-  page.on('response', async response => {
-    if (
-      response.url().includes(LOAD_CAPTCHA_URL_CONTENT_RESPONSE) &&
-      firstTry
-    ) {
-      console.log(
-        '🚀 ~ file: space.ts:42 ~ solver ~ response.url:',
-        response.url()
-      )
+    await page.setRequestInterception(true)
 
-      firstTry = false
-      try {
-        geeTestValues = await page.evaluate((url: string) => {
-          return fetch(url)
-            .then(response => response.json())
-            .then(data => data)
-        }, response.url())
-      } catch (e) {
-        console.log('🚀 ~ file: space.ts:47 ~ solver ~ e:', e)
+    page.on('request', async request => {
+      if (request.url().includes(LOAD_CAPTCHA_URL_CONTENT) && firstTryJSBlock) {
+        await request.abort()
+        firstTryJSBlock = false
+      } else await request.continue()
+    })
+
+    page.on('response', async response => {
+      if (
+        response.url().includes(LOAD_CAPTCHA_URL_CONTENT_RESPONSE) &&
+        firstTry
+      ) {
+        console.log(
+          '🚀 ~ file: space.ts:42 ~ solver ~ response.url:',
+          response.url()
+        )
+
+        firstTry = false
+        try {
+          geeTestValues = await page.evaluate((url: string) => {
+            return fetch(url)
+              .then(response => response.json())
+              .then(data => data)
+          }, response.url())
+        } catch (e) {
+          console.log('🚀 ~ file: space.ts:47 ~ solver ~ e:', e)
+        }
       }
-    }
-  })
+    })
 
-  await navigateTo({
-    page,
-    url: SITE_URL
-  })
+    await navigateTo({
+      page,
+      url: SITE_URL
+    })
 
-  const captchaIframe = await page.$('#main-iframe')
+    const captchaIframe = await page.$('#main-iframe')
 
-  if (captchaIframe && geeTestValues)
-    try {
-      await sleep(5_000)
-      await handleGeeTest(page, geeTestValues)
-    } catch (e) {
-      await browser.close()
+    if (captchaIframe && geeTestValues)
+      try {
+        await sleep(5_000)
+        await handleGeeTest(page, geeTestValues)
 
-      if (!geeTestValues)
-        console.log('geeTestValues is undefined, something went wrong')
-    }
+        return true
+      } catch (e) {
+        if (!geeTestValues)
+          console.log('geeTestValues is undefined, something went wrong')
+      }
 
-  await browser.close()
+    return false
+  } catch (error) {
+    console.log('error', error)
 
-  return true
+    return false
+  } finally {
+    await browser?.close()
+  }
 }
 
 export { solver }

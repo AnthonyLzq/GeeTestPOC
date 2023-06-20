@@ -1,4 +1,4 @@
-import { Page } from 'puppeteer'
+import { Browser, Page } from 'puppeteer'
 import Jimp from 'jimp'
 import pixelmatch from 'pixelmatch'
 import { cv } from 'opencv-wasm'
@@ -201,31 +201,41 @@ const slidePuzzlePiece = async (page: Page, center: Center) => {
 }
 
 const solver = async () => {
-  const { browser, page } = await createIncognitoBrowser()
+  let browser: Browser | undefined
 
-  await navigateTo({
-    page,
-    url: SLIDE_CAPTCHA_URL,
-    selector: SLIDE_CAPTCHA_SELECTOR
-  })
-  await clickVerifyButton(page)
+  try {
+    const incognito = await createIncognitoBrowser()
+    const { page } = incognito
+    browser = incognito.browser
 
-  if (await verifyCaptchaResolved(page)) return true
+    await navigateTo({
+      page,
+      url: SLIDE_CAPTCHA_URL,
+      selector: SLIDE_CAPTCHA_SELECTOR
+    })
+    await clickVerifyButton(page)
 
-  const images = await getCaptchaImages(page)
-  const diffImage = await getDiffImage(images)
-  const center = getPuzzlePieceSlotCenterPosition(diffImage)
+    if (await verifyCaptchaResolved(page)) return true
 
-  await slidePuzzlePiece(page, center)
-  await sleep(3_000)
+    const images = await getCaptchaImages(page)
+    const diffImage = await getDiffImage(images)
+    const center = getPuzzlePieceSlotCenterPosition(diffImage)
 
-  let result = false
+    await slidePuzzlePiece(page, center)
+    await sleep(3_000)
 
-  if (await verifyCaptchaResolved(page)) result = true
+    let result = false
 
-  await browser.close()
+    if (await verifyCaptchaResolved(page)) result = true
 
-  return result
+    return result
+  } catch (error) {
+    console.error(error)
+
+    return false
+  } finally {
+    await browser?.close()
+  }
 }
 
 export { solver }
