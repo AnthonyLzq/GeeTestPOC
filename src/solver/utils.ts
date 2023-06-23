@@ -29,7 +29,7 @@ const navigateTo = async ({
 
 const createIncognitoBrowser = async () => {
   const browser = await puppeteer.launch({
-    headless: process.env.NODE_ENV !== 'local',
+    headless: !process.env.HEADLESS,
     args: [
       '--incognito',
       '--disable-web-security',

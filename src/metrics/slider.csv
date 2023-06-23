@@ -1,0 +1,4 @@
+attempts,success,succes_ratio,avg_time
+10,4,40%,32.26
+100,54,54%,32.00
+200,101,50.5%,35.97

@@ -21,7 +21,6 @@ type SolvedCaptcha = {
 const solveGeeTest = async (geeTestValues: GeeTestValues) => {
   const url = `http://2captcha.com/in.php?key=${API_KEY}&method=geetest&gt=${geeTestValues.gt}&challenge=${geeTestValues.challenge}&pageurl=${SITE_URL}&json=1`
   const { data } = await axios.get(url)
-  console.log('data', data)
 
   const captchaId = data.request
   let complete = false
@@ -92,9 +91,7 @@ const handleGeeTest = async (page: Page, geeTestValues: GeeTestValues) => {
         true
       )
       xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-      xhr.onreadystatechange = function (event) {
-        console.log('ev', event)
-
+      xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) window.parent.location.reload()
       }
       xhr.send(postBody)
@@ -134,11 +131,6 @@ const solver = async () => {
         response.url().includes(LOAD_CAPTCHA_URL_CONTENT_RESPONSE) &&
         firstTry
       ) {
-        console.log(
-          '🚀 ~ file: space.ts:42 ~ solver ~ response.url:',
-          response.url()
-        )
-
         firstTry = false
         try {
           geeTestValues = await page.evaluate((url: string) => {
@@ -146,9 +138,7 @@ const solver = async () => {
               .then(response => response.json())
               .then(data => data)
           }, response.url())
-        } catch (e) {
-          console.log('🚀 ~ file: space.ts:47 ~ solver ~ e:', e)
-        }
+        } catch (e) {}
       }
     })
 
@@ -169,6 +159,7 @@ const solver = async () => {
         if (!geeTestValues)
           console.log('geeTestValues is undefined, something went wrong')
       }
+    else console.log('captchaIframe is undefined, something went wrong')
 
     return false
   } catch (error) {

@@ -230,7 +230,7 @@ const solver = async () => {
 
     return result
   } catch (error) {
-    console.error(error)
+    console.log('error', error)
 
     return false
   } finally {

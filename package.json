@@ -11,7 +11,9 @@
     "test:slider:local": "NODE_ENV=local jest --setupFiles dotenv/config --ci -i --testPathPattern=slider",
     "test:space": "NODE_ENV=test jest --ci -i --testPathPattern=space",
     "test:space:local": "NODE_ENV=local jest --setupFiles dotenv/config --ci -i --testPathPattern=space",
-    "test:ci": "NODE_ENV=test jest --ci -i"
+    "test:ci": "NODE_ENV=test jest --ci -i",
+    "metrics:slider": "ts-node ./src/metrics/slider.ts && ts-node ./src/metrics/slider.ts 100 && ts-node ./src/metrics/slider.ts 200",
+    "metrics:space": "ts-node ./src/metrics/space.ts && ts-node ./src/metrics/space.ts 100 && ts-node ./src/metrics/space.ts 200"
   },
   "author": "AnthonyLzq <sluzquinosa@uni.pe>",
   "license": "MIT",
