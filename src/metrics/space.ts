@@ -1,6 +1,7 @@
 import { appendFileSync } from 'fs'
 import { join } from 'path'
-import { solver } from '../solver/space'
+
+import { solver } from 'solver/space'
 
 const TOTAL = parseInt(process.argv[2]) || 10
 let successCount = 0

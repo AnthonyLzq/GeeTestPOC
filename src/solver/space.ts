@@ -2,14 +2,39 @@ import { Browser, Page } from 'puppeteer'
 import axios from 'axios'
 import { createIncognitoBrowser, navigateTo, sleep } from './utils'
 
-const SITE_URL = 'https://nuwber.com/'
+const SITE_URL = 'https://www.geetest.com/en/demo'
+const SPACE_CAPTCHA_SELECTOR = '.tab-item.tab-item-3 > button'
+const GEE_TEST_SELECTOR = '.geetest_radar_tip'
+const GEE_TEST_CANVAS = '.geetest_fullpage_click_box'
 const LOAD_CAPTCHA_URL_CONTENT = 'get.php'
 const LOAD_CAPTCHA_URL_CONTENT_RESPONSE = 'GEE'
+const GEE_TEST_RESULT =
+  '.geetest_success_radar_tip > span.geetest_success_radar_tip_content'
+
 const API_KEY = process.env.API_KEY
 
+const clickVerifyButton = async (page: Page) => {
+  await page.click(GEE_TEST_SELECTOR)
+  await page.waitForSelector(GEE_TEST_CANVAS, { visible: true })
+  await sleep(1_000)
+}
+
+const verifyCaptchaResolved = async (page: Page) => {
+  try {
+    await page.waitForSelector(GEE_TEST_RESULT, {
+      visible: true,
+      timeout: 10_000
+    })
+
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
 type GeeTestValues = {
-  challenge: string
-  gt: string
+  challenge: string | undefined
+  gt: string | undefined
 }
 
 type SolvedCaptcha = {
@@ -19,7 +44,15 @@ type SolvedCaptcha = {
 }
 
 const solveGeeTest = async (geeTestValues: GeeTestValues) => {
-  const url = `http://2captcha.com/in.php?key=${API_KEY}&method=geetest&gt=${geeTestValues.gt}&challenge=${geeTestValues.challenge}&pageurl=${SITE_URL}&json=1`
+  const { gt, challenge } = geeTestValues
+
+  if (!gt || !challenge) {
+    if (!gt) throw new Error('gt is undefined')
+
+    throw new Error('challenge is undefined')
+  }
+
+  const url = `http://2captcha.com/in.php?key=${API_KEY}&method=geetest&gt=${gt}&challenge=${challenge}&pageurl=${SITE_URL}&json=1`
   const { data } = await axios.get(url)
 
   const captchaId = data.request
@@ -111,55 +144,55 @@ const solver = async () => {
   try {
     const incognito = await createIncognitoBrowser()
     const { page } = incognito
+
     browser = incognito.browser
+    await navigateTo({
+      page,
+      url: SITE_URL
+    })
+    await page.setRequestInterception(true)
 
     let firstTryJSBlock = true
-    let firstTry = true
     let geeTestValues: GeeTestValues | undefined
-
-    await page.setRequestInterception(true)
 
     page.on('request', async request => {
       if (request.url().includes(LOAD_CAPTCHA_URL_CONTENT) && firstTryJSBlock) {
         await request.abort()
         firstTryJSBlock = false
+
+        try {
+          geeTestValues = await page.evaluate(async (url: string) => {
+            const gt = url.match(/gt=([^&]*)/)?.[1]
+            const challenge = url.match(/challenge=([^&]*)/)?.[1]
+
+            return {
+              gt,
+              challenge
+            }
+          }, request.url())
+        } catch (e) {}
       } else await request.continue()
     })
+    await page.click(SPACE_CAPTCHA_SELECTOR)
+    await sleep(5_000)
 
-    page.on('response', async response => {
-      if (
-        response.url().includes(LOAD_CAPTCHA_URL_CONTENT_RESPONSE) &&
-        firstTry
-      ) {
-        firstTry = false
-        try {
-          geeTestValues = await page.evaluate((url: string) => {
-            return fetch(url)
-              .then(response => response.json())
-              .then(data => data)
-          }, response.url())
-        } catch (e) {}
-      }
-    })
-
-    await navigateTo({
-      page,
-      url: SITE_URL
-    })
-
-    const captchaIframe = await page.$('#main-iframe')
-
-    if (captchaIframe && geeTestValues)
+    if (geeTestValues)
       try {
         await sleep(5_000)
-        await handleGeeTest(page, geeTestValues)
+        const solvedCaptcha = await solveGeeTest(geeTestValues)
+        console.log(
+          '🚀 ~ file: space.ts:183 ~ solver ~ solvedCaptcha:',
+          solvedCaptcha
+        )
 
-        return true
+        return typeof solvedCaptcha === 'object'
       } catch (e) {
+        console.log('🚀 ~ file: space.ts:186 ~ solver ~ e:', e)
+
         if (!geeTestValues)
           console.log('geeTestValues is undefined, something went wrong')
       }
-    else console.log('captchaIframe is undefined, something went wrong')
+    else console.log('geeTestValues is undefined, something went wrong')
 
     return false
   } catch (error) {

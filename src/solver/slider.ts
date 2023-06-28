@@ -3,15 +3,11 @@ import Jimp from 'jimp'
 import pixelmatch from 'pixelmatch'
 import { cv } from 'opencv-wasm'
 
-import {
-  SLIDE_CAPTCHA_URL,
-  createIncognitoBrowser,
-  navigateTo,
-  sleep
-} from './utils'
+import { createIncognitoBrowser, navigateTo, sleep } from './utils'
 
-const SLIDE_CAPTCHA_SELECTOR = '.tab-item.tab-item-1'
+const SLIDE_CAPTCHA_URL = 'https://www.geetest.com/en/demo'
 const GEE_TEST_SELECTOR = '.geetest_radar_tip'
+const SLIDE_CAPTCHA_SELECTOR = '.tab-item.tab-item-1 > button'
 const GEE_TEST_CANVAS = '.geetest_canvas_img canvas'
 const SLIDER_SELECTOR = '.geetest_slider_button'
 const GEE_TEST_RESULT =
